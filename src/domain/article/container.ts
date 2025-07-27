@@ -3,6 +3,7 @@ import {bindAll} from "../../utils/binding";
 import {ArticleController, IArticleController} from "./controller/article.controller";
 import {ArticleRepository, IArticleRepository} from "./repository/article.repository";
 import {ArticleService, IArticleService} from "./service/article.service";
+import { authenticate } from "../../middlewares/authentication.middleware";
 
 export class ArticleContainer {
   public static readonly containerName = "UserContainer";
@@ -11,11 +12,16 @@ export class ArticleContainer {
   public static setup(router: Router): void {
     const controller:IArticleController = this._createController();
 
-    router.get(`${ArticleContainer.apiPrefix}/`, controller.getAll);
-    router.post(`${ArticleContainer.apiPrefix}/`, controller.create);
-    router.get(`${ArticleContainer.apiPrefix}/:id`, controller.getById);
-    router.patch(`${ArticleContainer.apiPrefix}/:id`, controller.update);
-    router.delete(`${ArticleContainer.apiPrefix}/:id`, controller.delete);
+    const securedRouter = Router();
+    securedRouter.use(authenticate);
+
+    securedRouter.get("/", controller.getAll);
+    securedRouter.post("/", controller.create);
+    securedRouter.get("/:id", controller.getById);
+    securedRouter.patch("/:id", controller.update);
+    securedRouter.delete("/:id", controller.delete);
+
+    router.use(ArticleContainer.apiPrefix, securedRouter);
   }
 
   private static _createController(): IArticleController {

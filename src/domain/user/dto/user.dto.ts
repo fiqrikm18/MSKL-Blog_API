@@ -3,7 +3,7 @@ import {z} from "zod";
 export const createUserDto = z.object({
   name: z.string().nonempty().nonoptional(),
   username: z.string().nonempty().min(5).max(25).nonoptional(),
-  password: z.string().nonempty().nonoptional(),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
 });
 
 export type CreateUserDTO = z.infer<typeof createUserDto>;

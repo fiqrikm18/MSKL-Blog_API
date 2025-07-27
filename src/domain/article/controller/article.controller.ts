@@ -28,7 +28,7 @@ export interface IArticleController {
 
 export class ArticleController implements IArticleController {
 
-  private articleService: IArticleService;
+  private readonly articleService: IArticleService;
 
   constructor(articleService: IArticleService) {
     this.articleService = articleService;
@@ -120,6 +120,8 @@ export class ArticleController implements IArticleController {
   public async create(req: Request, res: Response): Promise<Response<SuccessResponse<undefined> | ErrorResponse>> {
     try {
       const payload: CreateArticleDTO = createArticleSchema.parse(req.body);
+      payload.authorId = req.user?.id || "";
+
       await this.articleService.create(payload);
       return res.status(201).json({
         code: 201,

@@ -1,10 +1,14 @@
-import {UserRepository} from "../repository/user.repository";
-import {CreateUserDTO, FindAllUserDTO, UpdateUserDTO, UserResponseDTO} from "../dto/user.dto";
-import {Prisma} from "../../../infrastructures/database/generated/prisma";
-import {UserAlreadyExistsException} from "../exception/UserAlreadyExistsException";
-import {UserNotFoundException} from "../exception/UserNotFoundException";
-import {PaginationDto} from "../../shared/dto/pagination.dto";
-
+import { UserRepository } from "../repository/user.repository";
+import {
+  CreateUserDTO,
+  FindAllUserDTO,
+  UpdateUserDTO,
+  UserResponseDTO,
+} from "../dto/user.dto";
+import { Prisma } from "../../../infrastructures/database/generated/prisma";
+import {UserAlreadyExistsException, UserNotFoundException} from "../exception/UserException";
+import { PaginationDto } from "../../shared/dto/pagination.dto";
+import bcrypt from "bcryptjs";
 
 interface IUserService {
   createUser(payload: CreateUserDTO): Promise<void>;
@@ -19,13 +23,20 @@ interface IUserService {
 }
 
 export class UserService implements IUserService {
+  private readonly userRepository: UserRepository;
 
-  constructor(private userRepository: UserRepository) {
+  constructor(userRepository: UserRepository) {
     this.userRepository = userRepository;
   }
 
   public async findAllUsers(payload: PaginationDto): Promise<FindAllUserDTO> {
-    const users = await this.userRepository.findUsers(payload.page, payload.perPage, payload.sort, payload.sortBy, payload.search);
+    const users = await this.userRepository.findUsers(
+      payload.page,
+      payload.perPage,
+      payload.sort,
+      payload.sortBy,
+      payload.search
+    );
     const userCount = await this.userRepository.count();
 
     return {
@@ -38,7 +49,7 @@ export class UserService implements IUserService {
         } as UserResponseDTO;
       }),
       size: userCount,
-      totalPages: Math.ceil(userCount / payload.perPage)
+      totalPages: Math.ceil(userCount / payload.perPage),
     };
   }
 
@@ -52,18 +63,23 @@ export class UserService implements IUserService {
       username: user.username,
       name: user.name,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      updatedAt: user.updatedAt,
     } as UserResponseDTO;
   }
 
   public async createUser(payload: CreateUserDTO): Promise<void> {
     const user = await this.userRepository.findUserByUsername(payload.username);
     if (user != null) {
-      throw new UserAlreadyExistsException(`user with username ${payload.username} already exists`);
+      throw new UserAlreadyExistsException(
+        `user with username ${payload.username} already exists`
+      );
     }
 
+    const passwordSalt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(payload.password, passwordSalt);
     const userModel: Prisma.UserCreateInput = {
-      ...payload
+      ...payload,
+      password: passwordHash,
     };
 
     await this.userRepository.createUser(userModel);
@@ -81,7 +97,9 @@ export class UserService implements IUserService {
 
     user = await this.userRepository.findUserByUsername(payload.username ?? "");
     if (user) {
-      throw new UserAlreadyExistsException(`user with username ${payload.username} already exists`);
+      throw new UserAlreadyExistsException(
+        `user with username ${payload.username} already exists`
+      );
     }
 
     const updatePayload: Prisma.UserUpdateInput = {
@@ -100,5 +118,4 @@ export class UserService implements IUserService {
 
     await this.userRepository.deleteUser(id);
   }
-
 }

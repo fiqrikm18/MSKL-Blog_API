@@ -1,5 +1,3 @@
-import {UserResponseDTO} from "../../user/dto/user.dto";
-
 export interface PaginationDto {
   page: number;
   perPage: number;

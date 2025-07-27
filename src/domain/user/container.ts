@@ -1,15 +1,12 @@
-import { Router } from "express";
-import { IUserController, UserController } from "./controller/user.controller";
-import { UserRepository } from "./repository/user.repository";
-import { UserService } from "./service/user.service";
-import { bindAll } from "../../utils/binding";
-import {
-  AuthenticationController,
-  IAuthenticationController,
-} from "./controller/authentication.controller";
-import { UserTokenRepository } from "./repository/user_token.repository";
-import { AuthenticationService } from "./service/authentication.service";
-import { authenticate } from "../../middlewares/authentication.middleware";
+import {Router} from "express";
+import {IUserController, UserController} from "./controller/user.controller";
+import {UserRepository} from "./repository/user.repository";
+import {UserService} from "./service/user.service";
+import {bindAndHandleAll} from "../../utils/binding";
+import {AuthenticationController, IAuthenticationController,} from "./controller/authentication.controller";
+import {UserTokenRepository} from "./repository/user_token.repository";
+import {AuthenticationService} from "./service/authentication.service";
+import {authenticate} from "../../middlewares/authentication.middleware";
 
 export class UserContainer {
   public static readonly containerName = "UserContainer";
@@ -28,12 +25,10 @@ export class UserContainer {
 
     const authenticationSecuredRouter = Router();
     authenticationSecuredRouter.use(authenticate);
-
     authenticationSecuredRouter.post("/logout", authenticationController.logout);
 
     const userSecuredRouter = Router();
     userSecuredRouter.use(authenticate);
-
     userSecuredRouter.get("/", userController.getAll);
     userSecuredRouter.post("/", userController.create);
     userSecuredRouter.get("/:id", userController.getById);
@@ -48,7 +43,7 @@ export class UserContainer {
     const userRepository = new UserRepository();
     const userService = new UserService(userRepository);
     const controller = new UserController(userService);
-    return bindAll(controller);
+    return bindAndHandleAll(controller);
   }
 
   private static _createAuthenticationController(): IAuthenticationController {
@@ -59,6 +54,6 @@ export class UserContainer {
       userRepository
     );
     const controller = new AuthenticationController(authenticationService);
-    return bindAll(controller);
+    return bindAndHandleAll(controller);
   }
 }

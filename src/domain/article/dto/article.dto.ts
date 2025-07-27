@@ -5,6 +5,7 @@ export interface ArticleListResponseDTO {
   id: string;
   title: string;
   status: string;
+  pageViews?: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,18 +1,15 @@
-export function bindAll<T extends object>(instance: T): T {
-  const proto = Object.getPrototypeOf(instance);
-  const methodNames = Object.getOwnPropertyNames(proto).filter(
-    name => name !== "constructor" && typeof proto[name] === "function"
+import { asyncHandler } from "./async_handler";
+
+export function bindAndHandleAll<T extends object>(instance: T): T {
+  const prototype = Object.getPrototypeOf(instance);
+  const methodNames = Object.getOwnPropertyNames(prototype).filter(
+    (key) =>
+      typeof instance[key as keyof T] === "function" && key !== "constructor"
   );
 
-  for (const name of methodNames) {
-    const fn = proto[name];
-    if (typeof fn === "function") {
-      Object.defineProperty(instance, name, {
-        value: fn.bind(instance),
-        writable: true,
-        configurable: true,
-      });
-    }
+  for (const key of methodNames) {
+    const originalMethod = instance[key as keyof T] as unknown as Function;
+    (instance as any)[key] = asyncHandler(originalMethod.bind(instance));
   }
 
   return instance;

@@ -2,10 +2,12 @@ import {config as configureEnv} from "dotenv";
 import app from "./app";
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface User {
-      id: string;
-      // add other user properties if needed
+      userId: string;
+      username: string;
+      [key: string]: any;
     }
     interface Request {
       user?: User;

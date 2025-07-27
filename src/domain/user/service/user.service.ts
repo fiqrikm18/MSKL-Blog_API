@@ -9,13 +9,14 @@ import { Prisma } from "../../../infrastructures/database/generated/prisma";
 import {UserAlreadyExistsException, UserNotFoundException} from "../exception/UserException";
 import { PaginationDto } from "../../shared/dto/pagination.dto";
 import bcrypt from "bcryptjs";
+import {AuthenticationException} from "../exception/AuthenticatioException";
 
 interface IUserService {
   createUser(payload: CreateUserDTO): Promise<void>;
 
-  updateUser(payload: UpdateUserDTO): Promise<void>;
+  updateUser(payload: UpdateUserDTO, authenticatedUser: string): Promise<void>;
 
-  deleteUser(id: string): Promise<void>;
+  deleteUser(id: string, authenticatedUser: string): Promise<void>;
 
   findUserById(id: string): Promise<UserResponseDTO | null>;
 
@@ -42,6 +43,7 @@ export class UserService implements IUserService {
     return {
       users: users.map((u: UserResponseDTO) => {
         return {
+          id: u.id,
           username: u.username,
           name: u.name,
           createdAt: u.createdAt,
@@ -85,7 +87,7 @@ export class UserService implements IUserService {
     await this.userRepository.createUser(userModel);
   }
 
-  public async updateUser(payload: UpdateUserDTO): Promise<void> {
+  public async updateUser(payload: UpdateUserDTO, authenticatedUser: string): Promise<void> {
     if (payload.id == "") {
       throw new UserNotFoundException("user not found");
     }
@@ -93,6 +95,10 @@ export class UserService implements IUserService {
     let user = await this.userRepository.findUserById(payload.id || "");
     if (!user) {
       throw new UserNotFoundException("user not found");
+    }
+
+    if (authenticatedUser !== user.id) {
+      throw new AuthenticationException("You don't have access to this user");
     }
 
     user = await this.userRepository.findUserByUsername(payload.username ?? "");
@@ -110,10 +116,14 @@ export class UserService implements IUserService {
     await this.userRepository.updateUser(payload.id || "", updatePayload);
   }
 
-  public async deleteUser(id: string): Promise<void> {
+  public async deleteUser(id: string, authenticatedUser: string): Promise<void> {
     const user = await this.userRepository.findUserById(id);
     if (!user) {
       throw new UserNotFoundException("user not found");
+    }
+
+    if (authenticatedUser !== user.id) {
+      throw new AuthenticationException("You don't have access to this user");
     }
 
     await this.userRepository.deleteUser(id);

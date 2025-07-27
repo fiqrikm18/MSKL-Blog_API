@@ -18,6 +18,7 @@ export const updateUserDto = z.object({
 export type UpdateUserDTO = z.infer<typeof updateUserDto>;
 
 export interface UserResponseDTO {
+  id: string;
   username: string;
   name: string;
   createdAt: Date;

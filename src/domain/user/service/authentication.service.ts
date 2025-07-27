@@ -1,5 +1,5 @@
 import {LoginDTO} from "../dto/authentication.dto";
-import {AuthenticationException, UserNotAuthenticatedException} from "../exception/AuthenticatioException";
+import {AuthenticationException} from "../exception/AuthenticatioException";
 import {IUserRepository} from "../repository/user.repository";
 import {IUserTokenRepository} from "../repository/user_token.repository";
 import bcrypt from "bcryptjs";
@@ -20,8 +20,8 @@ export interface IAuthenticationService {
 }
 
 export class AuthenticationService implements IAuthenticationService {
-  private userTokenRepository: IUserTokenRepository;
-  private userRepository: IUserRepository;
+  private readonly userTokenRepository: IUserTokenRepository;
+  private readonly userRepository: IUserRepository;
 
   constructor(
     userTokenRepository: IUserTokenRepository,

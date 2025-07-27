@@ -4,6 +4,7 @@ import morgan from "morgan";
 import {HealthCheckContainer} from "./domain/health_check/container";
 import {UserContainer} from "./domain/user/container";
 import {ArticleContainer} from "./domain/article/container";
+import {globalErrorHandler} from "./middlewares/error.middleware";
 
 const app = express();
 const router = express.Router();
@@ -19,5 +20,7 @@ app.use("/api/v1", router);
 HealthCheckContainer.setup(router);
 UserContainer.setup(router);
 ArticleContainer.setup(router);
+
+app.use(globalErrorHandler);
 
 export default app;

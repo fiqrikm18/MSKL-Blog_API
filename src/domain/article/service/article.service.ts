@@ -10,17 +10,18 @@ import {ArticleNotFoundException} from "../exception/ArticleNotFoundException";
 import {Prisma} from "../../../infrastructures/database/generated/prisma";
 import {UserResponseDTO} from "../../user/dto/user.dto";
 import {PaginationDto} from "../../shared/dto/pagination.dto";
+import {AuthenticationException} from "../../user/exception/AuthenticatioException";
 
 export interface IArticleService {
-  findById(id: string): Promise<ArticleDetailResponseDTO | undefined>;
+  findById(id: string, isAuthenticated: boolean): Promise<ArticleDetailResponseDTO | undefined>;
 
-  findAll(payload: PaginationDto): Promise<FindAllArticlesDTO>;
+  findAll(payload: PaginationDto, isAuthenticated: boolean): Promise<FindAllArticlesDTO>;
 
-  create(payload: CreateArticleDTO): Promise<void>;
+  create(payload: CreateArticleDTO, author: string): Promise<void>;
 
-  update(payload: UpdateArticleDTO): Promise<void>;
+  update(payload: UpdateArticleDTO, authenticatedUser: string): Promise<void>;
 
-  delete(id: string): Promise<void>;
+  delete(id: string, authenticatedUser: string): Promise<void>;
 }
 
 export class ArticleService implements IArticleService {
@@ -31,11 +32,18 @@ export class ArticleService implements IArticleService {
     this.articleRepository = articleRepository;
   }
 
-  public async findAll(payload: PaginationDto): Promise<FindAllArticlesDTO> {
-    const articleCount = await this.articleRepository.count();
+  async findAll(payload: PaginationDto, isAuthenticated: boolean): Promise<FindAllArticlesDTO> {
+    const articleCount = await this.articleRepository.count(
+      payload.page, payload.perPage,
+      payload.sort, payload.sortBy,
+      payload.search,
+      isAuthenticated
+    );
     const articles = await this.articleRepository.findAll(
       payload.page, payload.perPage,
-      payload.sort, payload.sortBy, payload.search
+      payload.sort, payload.sortBy,
+      payload.search,
+      isAuthenticated
     );
 
     return {
@@ -49,12 +57,12 @@ export class ArticleService implements IArticleService {
         } as ArticleListResponseDTO;
       }),
       size: articleCount,
-      totalPages: Math.ceil(articleCount / articles.length),
+      totalPages: articleCount === 0 ? 0 : Math.ceil(articleCount / articles.length),
     } as FindAllArticlesDTO;
   }
 
-  public async findById(id: string): Promise<ArticleDetailResponseDTO | undefined> {
-    const article = await this.articleRepository.findById(id);
+  public async findById(id: string, isAuthenticated: boolean): Promise<ArticleDetailResponseDTO | undefined> {
+    const article = await this.articleRepository.findById(id, isAuthenticated);
     if (!article) {
       throw new ArticleNotFoundException("article not found");
     }
@@ -76,25 +84,29 @@ export class ArticleService implements IArticleService {
     } as ArticleDetailResponseDTO;
   }
 
-  public async create(payload: CreateArticleDTO): Promise<void> {
+  public async create(payload: CreateArticleDTO, author: string): Promise<void> {
     const createPayload: Prisma.ArticleCreateInput = {
       ...payload,
       author: {
         connect: {
-          id: "6884fe51dc34c1d9cabfa4ff"
+          id: author
         }
       }
     };
     await this.articleRepository.create(createPayload);
   }
 
-  public async update(payload: UpdateArticleDTO): Promise<void> {
+  public async update(payload: UpdateArticleDTO, authenticatedUser: string): Promise<void> {
     if (payload.id == "") {
       throw new ArticleNotFoundException("Article not found");
     }
-    const article = this.articleRepository.findById(payload.id || "");
+    const article = await this.articleRepository.findById(payload.id || "", true);
     if (!article) {
       throw new ArticleNotFoundException("Article not found");
+    }
+
+    if (authenticatedUser !== article.author.id) {
+      throw new AuthenticationException("You don't have access to this article");
     }
 
     const updatePayload: Prisma.ArticleUpdateInput = {
@@ -105,10 +117,14 @@ export class ArticleService implements IArticleService {
     await this.articleRepository.update(payload.id || "", updatePayload);
   }
 
-  public async delete(id: string): Promise<void> {
-    const article = this.articleRepository.findById(id);
+  public async delete(id: string, authenticatedUser: string): Promise<void> {
+    const article = await this.articleRepository.findById(id, true);
     if (!article) {
       throw new ArticleNotFoundException("Article not found");
+    }
+
+    if (authenticatedUser !== article.author.id) {
+      throw new AuthenticationException("You don't have access to this article");
     }
 
     await this.articleRepository.delete(id);

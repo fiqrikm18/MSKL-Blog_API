@@ -1,0 +1,18 @@
+model Article {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   String
+  status    Status     @default(DRAFT)
+  authorId  String     @db.ObjectId
+  author    User       @relation(fields: [authorId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  views     PageView[]
+
+  @@map("articles")
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}

@@ -25,7 +25,7 @@ export interface IArticleService {
 
 export class ArticleService implements IArticleService {
 
-  private articleRepository: IArticleRepository;
+  private readonly articleRepository: IArticleRepository;
 
   constructor(articleRepository: IArticleRepository) {
     this.articleRepository = articleRepository;

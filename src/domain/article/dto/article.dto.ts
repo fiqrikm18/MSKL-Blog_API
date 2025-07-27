@@ -24,9 +24,10 @@ export const createArticleSchema = z.object({
   title: z.string().nonempty().nonoptional(),
   content: z.string().nonempty().nonoptional(),
   status: z.enum(["DRAFT", "PUBLISHED"]),
+  authorId: z.string().optional(),
 });
 
-export type CreateArticleDTO = z.infer<typeof updateArticleSchema>;
+export type CreateArticleDTO = z.infer<typeof createArticleSchema>;
 
 export const updateArticleSchema = z.object({
   id: z.string().optional(),

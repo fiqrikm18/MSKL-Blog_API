@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts --fix",
-    "prisma-generate": "npx prisma generate",
+    "prisma-generate": "npx prisma generate && npx prisma db push && npx prisma format",
     "env-enc": "dotenvx encrypt",
     "env-dec": "dotenvx decrypt"
   },
@@ -19,9 +19,11 @@
     "@dotenvx/dotenvx": "^1.48.3",
     "@prisma/client": "^6.12.0",
     "@types/morgan": "^1.9.10",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "prisma": "^6.12.0",
     "zod": "^4.0.10"
@@ -30,6 +32,7 @@
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.32.0",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.1.0",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",

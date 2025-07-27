@@ -1,0 +1,10 @@
+model PageView {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  articleId String   @db.ObjectId
+  article   Article  @relation(fields: [articleId], references: [id])
+  viewerId  String   @db.ObjectId
+  viewer    User     @relation(fields: [viewerId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("page_views")
+}

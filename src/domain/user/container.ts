@@ -15,8 +15,7 @@ export class UserContainer {
 
   public static setup(router: Router): void {
     const userController: IUserController = this._createUserController();
-    const authenticationController: IAuthenticationController =
-      this._createAuthenticationController();
+    const authenticationController: IAuthenticationController = this._createAuthenticationController();
 
     router.post(
       `${UserContainer.authApiPrefix}/login`,

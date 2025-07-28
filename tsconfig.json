@@ -1,11 +1,35 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "ES2020",
     "module": "commonjs",
-    "rootDir": "./src",
-    "outDir": "./dist",
+    "rootDir": ".",
+    "outDir": "dist",
     "strict": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "skipLibCheck": true
-  }
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "baseUrl": "src",
+    "paths": {
+      "@/*": [
+        "*"
+      ],
+      "@prisma/*": [
+        "infrastructures/database/generated/prisma/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "src/**/*",
+    "prisma.config.ts",
+    "prisma/schema.prisma"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/infrastructures/database/generated/prisma"
+    // ⛔️ JANGAN compile hasil generate
+  ]
 }

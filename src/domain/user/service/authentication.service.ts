@@ -37,11 +37,10 @@ export class AuthenticationService implements IAuthenticationService {
       throw new AuthenticationException("Invalid username or password");
     }
 
-    bcrypt.compare(payload.password, user.password, (err, result) => {
-      if (err || !result) {
-        throw new AuthenticationException("Invalid username or password");
-      }
-    });
+    const isValid = await bcrypt.compare(payload.password, user.password);
+    if (!isValid) {
+      throw new AuthenticationException("Invalid username or password");
+    }
 
     const accessTokenUID = crypto.randomUUID();
     const accessToken = jwt.sign(

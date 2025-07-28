@@ -4,10 +4,12 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "rm -rf dist/ && tsc && cp -r src/infrastructures/database/generated dist/src/infrastructures/database/generated/",
+    "start": "node dist/src/server.js",
     "lint": "eslint src --ext .ts --fix",
-    "prisma-generate": "npx prisma generate && npx prisma db push && npx prisma format",
+    "prisma:generate": "npx prisma generate",
+    "prisma:deploy": "npx prisma db push && npx prisma format",
+    "prisma:seed": "ts-node prisma/seed.ts",
     "env-enc": "dotenvx encrypt",
     "env-dec": "dotenvx decrypt"
   },

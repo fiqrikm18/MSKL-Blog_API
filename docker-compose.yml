@@ -1,0 +1,32 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog_api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mongodb://mongodb:27017/db?authSource=admin
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:8
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    command: [ "--replSet", "rs0", "--bind_ip_all" ]
+    volumes:
+      - ./init-replica.sh:/init-replica.sh
+      - cccc:/data/db
+    entrypoint: [ "bash", "/init-replica.sh" ]
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb:27017/db --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  cccc:
